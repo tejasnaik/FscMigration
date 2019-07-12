@@ -11,8 +11,28 @@ public Class ObjectFieldSetup{
     @AuraEnabled
     public static ObjectFieldSetup.ObjectSetUpWrapper getObjectSetupWrapper(String salesforceOrgId){
 
+        List<Object_setup__c> mappedLst = new List<Object_setup__c>();
+        List<Object_setup__c> sourceunmappedLst = new List<Object_setup__c>();
+        List<Object_setup__c> destunmappedLst = new List<Object_setup__c>();
+
         SalesforceOrg__c salesforceorg = new SalesforceOrg__c();
-        if(salesforceOrgId != null){
+        //Check if object Setup exists.If so populate the list and send it to Ui
+        List<Object_setup__c> objectSetUpLst = new List<Object_setup__c>();
+        for(Object_setup__c objSetUp :[SELECT Name,
+                                              Souce_Object_Api_Name__c,
+                                              Destination_Object_Name__c,
+                                              Destination_Object_Api_Name__c,
+                                              SalesforceOrg__c
+                                        FROM Object_setup__c ]){
+
+            if(objSetUp.Souce_Object_Api_Name__c == objSetUp.Destination_Object_Api_Name__c){
+                mappedLst.add(objSetUp);
+            }else{
+                sourceunmappedLst.add(objSetUp);
+            }                                    
+        }
+        if(mappedLst.isEmpty()  && sourceunmappedLst.isEmpty()){
+            if(salesforceOrgId != null){
             salesforceorg = [SELECT UserName__c,
                                     Password__c,
                                     Consumer_Key__c,
@@ -26,9 +46,7 @@ public Class ObjectFieldSetup{
             Map<String,String> sourceapi_labelObjectMap = getSourceObjects();
             Map<String,String> destapi_labelObjectMap = getFslObjects();
 
-            List<Object_setup__c> mappedLst = new List<Object_setup__c>();
-            List<Object_setup__c> sourceunmappedLst = new List<Object_setup__c>();
-            List<Object_setup__c> destunmappedLst = new List<Object_setup__c>();
+            
 
             for(String objapiname : sourceapi_labelObjectMap.keySet()){
                 if(destapi_labelObjectMap.containsKey(objapiname)){
@@ -61,15 +79,18 @@ public Class ObjectFieldSetup{
                 destunmappedLst.add(destunmappedtemp);
             }
 
-            ObjectSetUpWrapper objwrapper = new ObjectSetUpWrapper();
-            objwrapper.mappedLst = mappedLst;
-            objwrapper.sourceunmappedLst = sourceunmappedLst;
-            objwrapper.destunmappedLst = destunmappedLst;    
-            return objwrapper;
+        }//end of salesforceorgid null check
 
-        }//end of salesforceorgid null check     
+        }//end of is empty
+        
 
-        return null;
+        ObjectSetUpWrapper objwrapper = new ObjectSetUpWrapper();
+        objwrapper.mappedLst = mappedLst;
+        objwrapper.sourceunmappedLst = sourceunmappedLst;
+        objwrapper.destunmappedLst = destunmappedLst;    
+        return objwrapper;     
+
+        
     }// end of getObjectSetupWrapper
 
     public static void populateAccessTokenandInsturl(SalesforceOrg__c salesforceorgObj){
