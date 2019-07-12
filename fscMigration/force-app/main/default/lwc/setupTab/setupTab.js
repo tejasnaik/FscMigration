@@ -103,12 +103,18 @@ export default class SetupTab extends LightningElement {
         console.log(this.displayresult.length);
         console.log(this.sourceunmappedLst.length);
         this.sourceunmappedLst.concat(this.displayresult);
+        let insertObjectLst = [] ;
         let self = this;
         this.displayresult.forEach((item) => {
-            console.log(item);
-            self.sourceunmappedLst.push(item);
+            insertObjectLst.push(item);
+            //self.sourceunmappedLst.push(item);
         });
-        ObjectSetupInsertion({objectSetupLst : this.sourceunmappedLst})
+        this.sourceunmappedLst.forEach((item) => {
+            insertObjectLst.push(item);
+            //self.sourceunmappedLst.push(item);
+        });
+        console.log(insertObjectLst.length);
+        ObjectSetupInsertion({objectSetupLst : insertObjectLst})
             .then(result => {
                 console.log("Success" + result);
             })

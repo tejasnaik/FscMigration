@@ -152,7 +152,7 @@ public Class ObjectFieldSetup{
     public static String objectSetupInsertion(List<Object_setup__c> objectSetupLst){
         System.debug('Object setup list @@@@ ' + objectSetupLst.size());
         if(objectSetupLst.size() > 0){
-            upsert objectSetupLst;
+            upsert objectSetupLst Souce_Object_Api_Name__c;
         }
         return 'success';
     }
