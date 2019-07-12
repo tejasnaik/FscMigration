@@ -1,6 +1,7 @@
 <template>
     <template if:false={toggleSpinner}>
-            <lightning-accordion allow-multiple-sections-open active-section-name="A">
+        <template if:true={showObjectSetup} >
+        <lightning-accordion allow-multiple-sections-open active-section-name="A">
                     <lightning-accordion-section name="A" label="Mapped Object Details" >
                         <div class="slds-align_absolute-center slds-text-align_center">
                             <div style="width:100%;background-color:white">
@@ -94,6 +95,10 @@
                         </div>
                     </lightning-accordion-section>
                 </lightning-accordion>
+        </template>
+        <template if:true={showObjectFieldSetup}>
+            Show Fields
+        </template>        
     </template>
     <template if:true={toggleSpinner}>
         <div class="slds-is-relative slds-p-around_xx-large slds-align_absolute-center slds-text-align_center">

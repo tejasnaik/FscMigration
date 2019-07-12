@@ -13,7 +13,10 @@ export default class SetupTab extends LightningElement {
     @track displayresult;
     @track sourceunmappedLst;
     @track destunmappedLst;
+
     @track toggleSpinner;
+    @track showObjectSetup;
+    @track showObjectFieldSetup;
 
     connectedCallback() {
         // subscribe to searchKeyChange event
@@ -39,6 +42,8 @@ export default class SetupTab extends LightningElement {
                     this.sourceunmappedLst = result.sourceunmappedLst;
                     this.destunmappedLst = result.destunmappedLst;
                     this.toggleSpinner  = false;
+                    this.showObjectSetup = true;
+                    this.showObjectFieldSetup = false;
                 }
             })
             .catch(error => {
@@ -102,6 +107,7 @@ export default class SetupTab extends LightningElement {
         console.log('Child method called');
         console.log(this.displayresult.length);
         console.log(this.sourceunmappedLst.length);
+        this.toggleSpinner = true;
         this.sourceunmappedLst.concat(this.displayresult);
         let insertObjectLst = [] ;
         let self = this;
@@ -117,6 +123,9 @@ export default class SetupTab extends LightningElement {
         ObjectSetupInsertion({objectSetupLst : insertObjectLst})
             .then(result => {
                 console.log("Success" + result);
+                this.toggleSpinner = false;
+                this.showObjectSetup =false;
+                this.showObjectFieldSetup = true;
             })
             .catch(error =>{
                 console.log("error");
@@ -125,6 +134,13 @@ export default class SetupTab extends LightningElement {
         
     }
 
+    @api
+    previousButtonTriggered(){
+        if(this.showObjectFieldSetup === true && this.showObjectSetup === false){
+            this.showObjectFieldSetup = false;
+            this.showObjectSetup = true;
+        }
+    }
 
 
 }
