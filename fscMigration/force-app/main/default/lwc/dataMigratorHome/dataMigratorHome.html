@@ -1,0 +1,104 @@
+<template>
+  <article class="slds-card">
+    <div class="slds-card__body slds-card__body_inner" style="height: 100%;">
+      <!-- <div class="slds-list_horizontal" style="height: 45vh;"> -->
+      <div class="slds-list_horizontal">
+        <div class="slds-box"
+          style="width:17%;background-color:#FAFAFB;margin-right: 6px;margin-bottom: 4px;height:100%;">
+          <nav class="slds-nav-vertical slds-nav-vertical_shade" aria-label="Sub page">
+            <div class="slds-nav-vertical__section">
+              <!--<h4 id="entity-header" class="slds-nav-vertical__title">Connected Orgs</h4> -->
+              <b>Selected Org</b>
+              <ul aria-describedby="entity-header">
+                <template if:true={connectedSalesforceOrgName}>
+                  <li class="SelectedListCSS">
+                    <div class="slds-navigation-list--vertical__action slds-text-link--reset"
+                      aria-describedby="entity-header">{connectedSalesforceOrgName}</div>
+                  </li>
+                </template>
+                <template if:false={connectedSalesforceOrgName}>
+                  <li class="SelectedListCSS">
+                    <div class="slds-navigation-list--vertical__action slds-text-link--reset"
+                      aria-describedby="entity-header">--None--</div>
+                  </li>
+                </template>
+              </ul>
+            </div>
+            <div class="slds-nav-vertical__section">
+              <!--<h4 id="entity-header" class="slds-nav-vertical__title">Connected Orgs</h4> -->
+              <b>Connected Orgs</b>
+              <ul aria-describedby="entity-header">
+                <template if:true={salesforceOrgLst}>
+                  <template for:each={salesforceOrgLst.data} for:item="req" for:index="index">
+                    <li key={req.Id} class={req.Id}>
+                      <div onclick={openSelectedOrg}
+                        class="slds-navigation-list--vertical__action slds-text-link--reset"
+                        aria-describedby="entity-header">{req.Name}</div>
+                    </li>
+                  </template>
+                </template>
+                <li>
+                  <div onclick={newConnection} class="slds-navigation-list--vertical__action slds-text-link--reset"
+                    aria-describedby="entity-header">
+                    <lightning-icon icon-name="utility:add" size="xx-small" alternative-text="Approved"
+                      style="padding-right:10px;"></lightning-icon>Add New Org
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+        <!-- main window content start-->
+        <div style="width:80%;background-color:white">
+          <!-- <c-data-migrator-main></c-data-migrator-main> -->
+          <!-- table code start -->
+          <c-data-migrator-main connected-salesforce-org-id={connectedSalesforceOrgId}></c-data-migrator-main>
+
+          <!-- table code end -->
+        </div>
+        <!-- main window content end-->
+
+        <!-- modal start -->
+        <template if:true={openmodal}>
+          <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+              <!-- modal header start -->
+              <header class="slds-modal__header">
+                <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close"
+                  onclick={closeModal}>
+                  <lightning-icon icon-name="utility:close" alternative-text="close" variant="inverse" size="small">
+                  </lightning-icon>
+                  <span class="slds-assistive-text">Close</span>
+                </button>
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Connected Org Credentials</h2>
+              </header>
+              <!-- modal body start -->
+              <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                <lightning-input label="Salesforce Org Name" value={orgName} onchange={handleOrgNameChange}>
+                </lightning-input>
+                <lightning-input label="User Name" value={userName} onchange={handleUserNameChange}></lightning-input>
+                <lightning-input label="Password" type="password" value={password} onchange={handlePasswordChange}>
+                </lightning-input>
+                <lightning-input label="Consumer Key" value={clientId} onchange={handleClientIdChange}>
+                </lightning-input>
+                <lightning-input label="Consumer Secret" value={clientSecret} onchange={handleClientSecretChange}>
+                </lightning-input>
+                <lightning-input type="checkbox" label="Type of Org Is Sandbox" value={typeOfOrgIsSandBox}
+                  onchange={handleTypeOfOrgIsSandBox}></lightning-input>
+              </div>
+              <!-- modal footer start-->
+              <footer class="slds-modal__footer">
+                <lightning-button variant="brand" label="Save" title="Save" onclick={saveDetails}
+                  class="slds-m-horizontal_xx-small"></lightning-button>
+                <lightning-button variant="brand" label="Cancel" title="Cancel" onclick={closeModal}
+                  class="slds-m-horizontal_xx-small"></lightning-button>
+              </footer>
+            </div>
+          </section>
+          <div class="slds-backdrop slds-backdrop_open"></div>
+        </template>
+      </div>
+    </div>
+  </article>
+</template>

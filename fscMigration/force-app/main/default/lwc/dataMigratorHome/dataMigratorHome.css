@@ -1,0 +1,9 @@
+.customCardClass > header.slds-card__header.slds-grid{
+    padding-top:0px;
+}
+
+.SelectedListCSS{
+    background-color: rgb(217, 217, 219);
+    border : 1px solid rgb(217, 217, 219);
+    border-radius: 3px;
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Object_setup_name__c</fullName>
+    <deleteConstraint>Restrict</deleteConstraint>
+    <externalId>false</externalId>
+    <label>Object setup name</label>
+    <referenceTo>Object_setup__c</referenceTo>
+    <relationshipLabel>Batch Transaction Details</relationshipLabel>
+    <relationshipName>Batch_Transaction_Details</relationshipName>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

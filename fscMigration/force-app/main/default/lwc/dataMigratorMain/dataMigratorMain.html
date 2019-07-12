@@ -1,0 +1,36 @@
+<template>
+    <template if:false={connectedSalesforceOrgId}>
+      <div>
+          <div class="slds-text-align_center slds-box slds-theme_shade">
+            Please select a connected org or add a new connected org.
+          </div>
+      </div> 
+    </template>
+    <template if:true={connectedSalesforceOrgId}>
+        <lightning-tabset variant="scoped">
+            <lightning-tab label="Setup">
+                <template if:true={connectedSalesforceOrgId}>
+                        <c-setup-tab setupconnected-salesforce-org-id={connectedSalesforceOrgId}></c-setup-tab>
+                        <hr></hr>
+                        <div class="slds-align_absolute-center">
+                            <lightning-button-group>
+                                    <lightning-button label="Refresh"></lightning-button>
+                                    <lightning-button label="Previous" ></lightning-button>
+                                    <lightning-button label="Next" onclick={insertObjectSetup} ></lightning-button>
+                            </lightning-button-group>
+                        </div>
+                </template>
+            </lightning-tab>
+            <lightning-tab label="Export">
+                Two Content !
+            </lightning-tab>
+            <lightning-tab label="Transaction">
+                Three Content !
+            </lightning-tab>
+            <lightning-tab label="Help">
+                Three Content !
+            </lightning-tab>
+        </lightning-tabset>
+    </template>
+        
+</template>
