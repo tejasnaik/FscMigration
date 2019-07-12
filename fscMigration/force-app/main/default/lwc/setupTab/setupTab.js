@@ -134,6 +134,13 @@ export default class SetupTab extends LightningElement {
         
     }
 
+    @api
+    previousButtonTriggered(){
+        if(this.showObjectFieldSetup === true && this.showObjectSetup === false){
+            this.showObjectFieldSetup = false;
+            this.showObjectSetup = true;
+        }
+    }
 
 
 }

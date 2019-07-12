@@ -8,4 +8,8 @@ export default class DataMigratorMain extends LightningElement {
     insertObjectSetup(){
         this.template.querySelector('c-setup-tab').nextButtonTriggered();
     }
+
+    previousButtonTriggered(){
+        this.template.querySelector('c-setup-tab').previousButtonTriggered();    
+    }
 }
