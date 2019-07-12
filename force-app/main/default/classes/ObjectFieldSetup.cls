@@ -157,6 +157,144 @@ public Class ObjectFieldSetup{
         return 'success';
     }
 
+    /*Author: Pratiksha Gupta
+    * Parameter : Id for SalesforceOrg__C record  
+    * return : Map Fields with source object api name and dest object api name. 
+    */
+
+    
+
+    //Begin FieldSetup Wrapper 
+    @AuraEnabled
+    public static ObjectFieldSetup.FieldtSetUpWrapper getFieldSetUpWrapper(String salesforceOrgId,String objectsetupid){
+
+          SalesforceOrg__c salesforceorg = new SalesforceOrg__c();
+        if(salesforceOrgId != null){
+            salesforceorg = [SELECT UserName__c,
+                                    Password__c,
+                                    Consumer_Key__c,
+                                    Consumer_Secret__c,
+                                    Type_Of_Org_Is_Sandbox__c
+                             FROM  SalesforceOrg__c
+                             WHERE id =:salesforceOrgId 
+                             LIMIT 1];
+            //String accessToken = getAccessToken(salesforceorg);                 
+            populateAccessTokenandInsturl(salesforceorg);// to populate the class variables
+            Map<String,String> sourceapi_labelFieldMap = getSourceFields(objectsetupid);
+            Map<String,String> destapi_labelFieldMap = getFslFields(objectsetupid);
+            system.debug(sourceapi_labelFieldMap);
+            system.debug(destapi_labelFieldMap);
+            List<Field_setup__c> mappedLst = new List<Field_setup__c>();
+            List<Field_setup__c> sourceunmappedLst = new List<Field_setup__c>();
+            List<Field_setup__c> destunmappedLst = new List<Field_setup__c>();
+
+            for(String objapiname : sourceapi_labelFieldMap.keySet()){
+                if(destapi_labelFieldMap.containsKey(objapiname)){
+                   Field_setup__c mappedtemp =new Field_setup__c();
+                   mappedtemp.Name=sourceapi_labelFieldMap.get(objapiname);
+                   mappedtemp.Souce_Field_Api_Name__c=objapiname;
+                   mappedtemp.Destination_Field_Name__c=objapiname;
+                   mappedtemp.Destination_Field_Api_Name__c=destapi_labelFieldMap.get(objapiname);
+                   mappedtemp.Object_setup_name__c=salesforceOrgId;
+                   mappedLst.add(mappedtemp);
+                   destapi_labelFieldMap.remove(objapiname);
+                
+                }else{
+
+                   Field_setup__c mappedtemp =new Field_setup__c();
+                   mappedtemp.Name=sourceapi_labelFieldMap.get(objapiname);
+                   mappedtemp.Souce_Field_Api_Name__c=objapiname;
+                   mappedtemp.Destination_Field_Name__c='';
+                   mappedtemp.Destination_Field_Api_Name__c='';
+                   mappedtemp.Object_setup_name__c=salesforceOrgId;
+                   sourceunmappedLst.add(mappedtemp);
+                    
+                }    
+            }
+
+            for(String objapiname : destapi_labelFieldMap.keySet()){
+                 Field_setup__c mappedtemp =new Field_setup__c();
+                   mappedtemp.Name='';
+                   mappedtemp.Souce_Field_Api_Name__c='';
+                   mappedtemp.Destination_Field_Name__c=objapiname;
+                   mappedtemp.Destination_Field_Api_Name__c=destapi_labelFieldMap.get(objapiname);
+                   mappedtemp.Object_setup_name__c=salesforceOrgId;
+                   destunmappedLst.add(mappedtemp);
+            }
+
+            FieldtSetUpWrapper fldwrapper = new FieldtSetUpWrapper();
+            fldwrapper.mappedLst = mappedLst;
+            fldwrapper.sourceunmappedLst = sourceunmappedLst;
+            fldwrapper.destunmappedLst = destunmappedLst;    
+            return fldwrapper;
+           
+
+        }//end of salesforceorgid null check     
+    
+        return null;
+    
+} //End FieldSetup Wrapper
+
+
+    public static Map<String,String> getSourceFields(String objectsetupid){
+
+        
+        Object_setup__c sourceobjecapiname=[SELECT Souce_Object_Api_Name__c FROM Object_setup__c where Id =: objectsetupid];
+        Map<String,String> sourceapi_labelfieldMap = new Map<String,String>();
+
+        
+        Map<String, Schema.SObjectField> fieldMap = Schema.getGlobalDescribe().get(sourceobjecapiname.Souce_Object_Api_Name__c).getDescribe().fields.getMap();
+        
+        for (String fieldName: fieldMap.keySet()) {
+           //System.debug('##Field API Name='+fieldName);// list of all field API name
+           //System.debug('field name label'+fieldMap.get(fieldName).getDescribe().getLabel());//It provides to get the object fields label.
+            sourceapi_labelfieldMap.put(fieldName,fieldMap.get(fieldName).getDescribe().getLabel());
+
+        }//end of for
+        return sourceapi_labelfieldMap;
+    } // End source Field Fetch
+
+    public static Map<String,String> getFslFields(String objectsetupid){
+        
+        Object_setup__c destinationobjectapiname=[SELECT Destination_Object_Api_Name__c FROM Object_setup__c where Id =: objectsetupid];
+        
+        Map<String,String> destapi_labelFieldMap = new Map<String,String>();
+
+        System.debug('Access token @@@ ' + access_Token);
+        System.debug('Instance url @@@ ' + instanceUrl);
+
+        String endpoint = instanceUrl + '/services/data/v45.0/sobjects/'+destinationobjectapiname.Destination_Object_Api_Name__c+'/describe';
+        HTTPRequest req = new HTTPRequest();
+        req.setEndpoint(endpoint);
+        req.setMethod('GET');
+        req.setHeader('Authorization', 'Bearer ' + access_Token);
+        req.setHeader('Content-Type', 'application/json');
+        Http ht = new Http();
+        HttpResponse responseobjects = ht.send(req);
+        System.debug('Response body code @@@ ' + responseobjects.getBody());
+        
+        Map<String,Object> responseMap = (Map<String,Object>)JSON.deserializeUntyped(responseobjects.getBody());
+        List<Object> objectLst = (List<Object>)responseMap.get('fields');
+       
+		System.debug('Response body code @@@ ' + objectLst);
+ 		for(Object obj : objectLst){
+            Map<String,Object> objinfo = (Map<String,Object>)obj;
+            String name=(String)objinfo.get('name');
+            String label=(String)objinfo.get('label');
+            destapi_labelFieldMap.put(name.toLowerCase(),label);
+        }
+
+
+        return destapi_labelFieldMap;
+    } //End FSL Field Fetch
+
+    public Class FieldtSetUpWrapper{
+        @AuraEnabled public List<Field_setup__c> mappedLst;
+       @AuraEnabled public List<Field_setup__c> sourceunmappedLst;
+      @AuraEnabled  public List<Field_setup__c> destunmappedLst;
+    }
+
+
 
     public Class ObjectSetUpWrapper{
         @AuraEnabled public List<Object_setup__c> mappedLst;
