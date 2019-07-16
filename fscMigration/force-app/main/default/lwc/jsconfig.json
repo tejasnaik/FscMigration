@@ -13,6 +13,9 @@
             ],
             "c/setupTab": [
                 "setupTab/setupTab.js"
+            ],
+            "c/fieldMappingComponent": [
+                "fieldMappingComponent/fieldMappingComponent.js"
             ]
         },
         "experimentalDecorators": true

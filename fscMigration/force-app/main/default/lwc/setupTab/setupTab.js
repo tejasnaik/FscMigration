@@ -18,6 +18,10 @@ export default class SetupTab extends LightningElement {
     @track showObjectSetup;
     @track showObjectFieldSetup;
 
+    @track objectSetupRecordWithIdLst;
+    @track objectSelectedForFieldDisplay;
+    @track objectSetupSelectedId;
+
     connectedCallback() {
         // subscribe to searchKeyChange event
         console.log('Connected callback for setup tab called @@@@');
@@ -120,12 +124,14 @@ export default class SetupTab extends LightningElement {
             //self.sourceunmappedLst.push(item);
         });
         console.log(insertObjectLst.length);
-        ObjectSetupInsertion({objectSetupLst : insertObjectLst})
+        ObjectSetupInsertion({objectSetupLst : insertObjectLst,connectedSalesforceOrgId : this.setupconnectedSalesforceOrgId})
             .then(result => {
                 console.log("Success" + result);
                 this.toggleSpinner = false;
                 this.showObjectSetup =false;
                 this.showObjectFieldSetup = true;
+                this.objectSetupRecordWithIdLst = result;
+                this.objectSelectedForFieldDisplay = 'None';
             })
             .catch(error =>{
                 console.log("error");
@@ -142,5 +148,14 @@ export default class SetupTab extends LightningElement {
         }
     }
 
-
+    getSelectedObjectFields(event){
+        console.log('@@@ getSelectedObjectFields @@@ called');
+        console.log(event.target);
+        console.log(event.target.firstChild.className);
+        //console.log(event.target.firstChild.innerText);
+        console.log(this.setupconnectedSalesforceOrgId);
+        this.objectSelectedForFieldDisplay = event.target.firstChild.innerText;
+        this.objectSetupSelectedId = event.target.firstChild.className;
+        //this.objectSelectedForFieldDisplay
+    }
 }
