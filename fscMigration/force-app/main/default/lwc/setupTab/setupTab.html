@@ -97,7 +97,38 @@
                 </lightning-accordion>
         </template>
         <template if:true={showObjectFieldSetup}>
-            Show Fields
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-size_1-of-4 ">
+                    <nav class="slds-nav-vertical" aria-label="Sub page">
+                        <div class="slds-nav-vertical__section">
+                            <b>Object Selected :</b><br/>
+                            {objectSelectedForFieldDisplay}
+                        </div>
+                        <div class="slds-nav-vertical__section">
+                            <!-- <h2 id="entity-header" class="slds-nav-vertical__title">Select Object to Map Fields</h2> -->
+                            <b>Select Object</b>
+                            <ul aria-describedby="entity-header">
+                                <template if:true={objectSetupRecordWithIdLst}>
+                                    <template for:each={objectSetupRecordWithIdLst} for:item="req" for:index="index">
+                                        <li key={req.Id} class="slds-nav-vertical__item" onclick={getSelectedObjectFields}>
+                                            <div class={req.Id}>{req.Name}</div>
+                                        </li>
+                                    </template>
+                                </template>
+                            </ul>    
+                        </div>
+                    </nav>
+                </div>
+                <!-- <div class="slds-col slds-size_2-of-4">
+                    table to map
+                </div>
+                <div class="slds-col slds-size_1-of-4">
+                    Box with option to drag.
+                </div> -->
+                <div class="slds-col slds-size_3-of-4">
+                    <c-field-mapping-component object-setup-id={objectSetupSelectedId} connected-salesforce-id={setupconnectedSalesforceOrgId}></c-field-mapping-component>
+                </div>
+            </div>
         </template>        
     </template>
     <template if:true={toggleSpinner}>

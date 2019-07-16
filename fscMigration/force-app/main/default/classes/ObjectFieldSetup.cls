@@ -170,13 +170,35 @@ public Class ObjectFieldSetup{
     }
 
     @AuraEnabled
-    public static String objectSetupInsertion(List<Object_setup__c> objectSetupLst){
+    public static List<Object_setup__c> objectSetupInsertion(List<Object_setup__c> objectSetupLst,Id connectedSalesforceOrgId){
         System.debug('Object setup list @@@@ ' + objectSetupLst.size());
+        System.debug('Connected salesforce org id @@@@  ' + connectedSalesforceOrgId);
         if(objectSetupLst.size() > 0){
             upsert objectSetupLst Souce_Object_Api_Name__c;
+            List<Object_setup__c> objectSetupWithIdLst = [SELECT Id,
+                                                           Name
+                                                    FROM   Object_setup__c
+                                                    WHERE  SalesforceOrg__c = :connectedSalesforceOrgId];
+            return  objectSetupWithIdLst;   
         }
-        return 'success';
+
+        return null;
     }
+
+    // @AuraEnabled
+    // public static List<Object_setup__c> getObjectSetupRecords(Id connectedSalesforceId){
+    //     System.debug('@@@ connectedSalesforceId @@@ ' + connectedSalesforceId);
+    //     if(connectedSalesforceId != null){
+    //         List<Object_setup__c> objectSetupLst = [SELECT Id,
+    //                                                    Name
+    //                                             FROM   Object_setup__c
+    //                                             WHERE SalesforceOrg__c = :connectedSalesforceId];
+    //         return objectSetupLst;
+    //     }else{
+    //         return null;
+    //     }
+                                                
+    // }
 
 
     public Class ObjectSetUpWrapper{
