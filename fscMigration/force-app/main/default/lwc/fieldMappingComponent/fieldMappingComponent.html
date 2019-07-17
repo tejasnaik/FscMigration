@@ -1,12 +1,111 @@
 <template>
-    <template if:true={objectSetupId}>
-        <div class="slds-grid slds-gutters">
-            <div class="slds-col slds-size_2-of-3">
-                table to map connectedSalesforceId {connectedSalesforceId}
+    <template if:false={toggleSpinner}>
+            <template if:true={objectSetupId}>
+                    <lightning-accordion allow-multiple-sections-open active-section-name="A">
+                            <lightning-accordion-section name="A" label="Mapped Object Field Details" >
+                                    <div class="slds-align_absolute-center slds-text-align_center">
+                                        <div style="width:100%;background-color:white">
+                                            <!-- table code start -->
+                                            <table class="slds-table slds-table_cell-buffer slds-table_col-bordered">
+                                                <thead style="text-align: center;">
+                                                    <tr class="slds-line-height_reset">
+                                                        <th class="" scope="col">
+                                                            <div class="slds-truncate" title="Opportunity Name">Source Org Object Fields</div>
+                                                        </th>
+                                                        <th class="" scope="col">
+                                                            <div class="slds-truncate" title="Account Name">Target Org Object Fields</div>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <template for:each={displayresult} for:item="result">
+                                                        <tr class="slds-hint-parent" key={result.Name}>
+                        
+                                                            <td data-label="Account Name">
+                                                                <div class="slds-truncate" title={result.Name}>{result.Name}</div>
+                                                            </td>
+                                                            <td data-label="Close Date">
+                                                                <div class="slds-truncate" title={result.Destination_Object_Name__c}>
+                                                                    {result.Destination_Field_Api_Name__c}</div>
+                                                            </td>
+                        
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                            <!-- table code end -->
+                                        </div>
+                                    </div>
+                                </lightning-accordion-section>
+                                <lightning-accordion-section name="B" label="Unmapped Object Details" >
+                                        <div class="slds-grid slds-gutters">
+                                                <div class="slds-col slds-size_2-of-3">
+                                                    <span>
+                                                            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered">
+                                                                <thead>
+                                                                    <tr class="slds-line-height_reset">
+                                                                        <th class="" scope="col">
+                                                                            <div class="slds-truncate" title="Source Object Field">Source Object Fields</div>
+                                                                        </th>
+                                                                        <th class="" scope="col">
+                                                                            <div class="slds-truncate" title="Destination Object Fields">Destination Object Fields</div>
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    <template for:each={sourceunmappedLst} for:item="result" for:index="index">
+                                                                        <tr class="slds-hint-parent" key={result.Name}>
+                                    
+                                                                            <td data-label="Name">
+                                                                                <div class="slds-truncate" title={result.Name}>{result.Name}</div>
+                                                                            </td>
+                                                                            <!-- <td>
+                                                                                to be coded
+                                                                            </td> -->
+                                                                            <td ondrop={drop} ondragover={allowDrop}>
+                                                                                <div class={result.Name}></div>
+                                                                                <template if:true={result.Destination_Object_Api_Name__c}>
+                                                                                        <lightning-pill name={index} label={result.Destination_Object_Api_Name__c} onremove={removeFromMapped}></lightning-pill>
+                                                                                </template>
+                                                                            </td>
+                        
+                                                                        </tr>
+                                                                    </template>
+                                                                </tbody>
+                                                            </table>
+                                                        </span>
+                                                </div>
+                                                <div class="slds-col slds-size_1-of-3">
+                                                    <p class="slds-text-color_weak">
+                                                            Drag and Drop to map respective objects 
+                                                    </p>
+                                                    <div class="slds-p-top_large">
+                                                        <template if:true={destunmappedLst}>
+                                                            <template for:each={destunmappedLst} for:item="result">
+                                                                <lightning-pill label={result.Destination_Field_Api_Name__c} draggable="true"
+                                                                                data-id={result.Destination_Field_Api_Name__c} ondragstart={drag}
+                                                                                key={result.Destination_Field_Api_Name__c}></lightning-pill>
+                                                            </template>
+                                                        </template>
+                                                            <template if:false={destunmappedLst}>
+                                                                <p>
+                                                                    All objects are mapped
+                                                                </p>
+                                                            </template>
+                                                    </div>
+                                                </div>
+                                        </div>    
+                                </lightning-accordion-section>    
+                    </lightning-accordion>    
+                    
+            </template>
+    </template>
+    <template if:true={toggleSpinner}>
+            <div class="slds-is-relative slds-p-around_xx-large slds-align_absolute-center slds-text-align_center">
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>      
             </div>
-            <div class="slds-col slds-size_1-of-3">
-                Box with option to drag. objectSetupId {objectSetupId}
+            <div class="slds-p-around_medium slds-align_absolute-center slds-text-align_center" style="color:rgb(221, 223, 224)">
+                Processing
             </div>
-        </div>
     </template>
 </template>
