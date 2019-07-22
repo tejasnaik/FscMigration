@@ -1,0 +1,38 @@
+<template>
+    {exportDataConnectedSalesforceOrgId}
+    <div>
+        <lightning-combobox name="progress" label="Step 1: Select Object" value={value} placeholder="Select object"
+            options={objoptions} onchange={handleObjectChange} style="text-align:left">
+        </lightning-combobox>
+
+        <div class="slds-box slds-m-top_large">
+            <table>
+                <tr>
+                    <td style="width: 20%">
+                        <b> Object Selected</b>
+                    </td>
+                    <td>
+                        ObjectSelectionStatus
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 20%">
+                        <b>File Selected</b>
+                    </td>
+                    <td>
+                        FileSelectionStatus
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 20%">
+                        <b>File Header</b>
+                    </td>
+                    <td>
+                        HeaderStatus
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+</template>

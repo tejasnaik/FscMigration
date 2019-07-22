@@ -182,12 +182,24 @@ public Class ObjectFieldSetup{
     public static List<Object_setup__c> objectSetupInsertion(List<Object_setup__c> objectSetupLst,Id connectedSalesforceOrgId){
         System.debug('Object setup list @@@@ ' + objectSetupLst.size());
         System.debug('Connected salesforce org id @@@@  ' + connectedSalesforceOrgId);
+        for(Object_setup__c temp : objectSetupLst){
+            System.debug('Check id field @@ ' + temp.Id);
+        }
         if(objectSetupLst.size() > 0){
-            upsert objectSetupLst Souce_Object_Api_Name__c;
+            if(objectSetupLst[0].id == null){
+                System.debug('Inside insert');
+                insert objectSetupLst;
+            }else{
+                System.debug('Inside update');
+                update objectSetupLst;
+            }
+            //upsert objectSetupLst Souce_Object_Api_Name__c;
             List<Object_setup__c> objectSetupWithIdLst = [SELECT Id,
-                                                           Name
+                                                           Name,
+                                                           Destination_Object_Api_Name__c
                                                     FROM   Object_setup__c
-                                                    WHERE  SalesforceOrg__c = :connectedSalesforceOrgId];
+                                                    WHERE  SalesforceOrg__c = :connectedSalesforceOrgId
+                                                    AND    Destination_Object_Api_Name__c != null ];
             return  objectSetupWithIdLst;   
         }
 
@@ -344,6 +356,14 @@ public Class ObjectFieldSetup{
         return destapi_labelFieldMap;
     } //End FSL Field Fetch
 
+    @AuraEnabled
+    public static String upsertFieldMapping(List<Field_setup__c> fieldSetupLst){
+        if(fieldSetupLst.size() > 0){
+            upsert fieldSetupLst Souce_Field_Api_Name__c;
+            return 'Field Setup updated';
+        }
+        return 'Error could not update field setup';        
+    }
     public Class ObjectSetUpWrapper{
         @AuraEnabled public List<Object_setup__c> mappedLst;
         @AuraEnabled public List<Object_setup__c> sourceunmappedLst;

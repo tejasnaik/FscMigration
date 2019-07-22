@@ -112,7 +112,7 @@ export default class SetupTab extends LightningElement {
         console.log(this.displayresult.length);
         console.log(this.sourceunmappedLst.length);
         this.toggleSpinner = true;
-        this.sourceunmappedLst.concat(this.displayresult);
+        //this.sourceunmappedLst.concat(this.displayresult);
         let insertObjectLst = [] ;
         let self = this;
         this.displayresult.forEach((item) => {
@@ -132,6 +132,7 @@ export default class SetupTab extends LightningElement {
                 this.showObjectFieldSetup = true;
                 this.objectSetupRecordWithIdLst = result;
                 this.objectSelectedForFieldDisplay = 'None';
+                this.objectSetupSelectedId = '';
             })
             .catch(error =>{
                 console.log("error");

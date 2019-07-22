@@ -16,6 +16,9 @@
             ],
             "c/fieldMappingComponent": [
                 "fieldMappingComponent/fieldMappingComponent.js"
+            ],
+            "c/exportData": [
+                "exportData/exportData.js"
             ]
         },
         "experimentalDecorators": true

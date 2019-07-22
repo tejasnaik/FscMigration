@@ -1,7 +1,7 @@
 <template>
     <template if:false={toggleSpinner}>
             <template if:true={objectSetupId}>
-                    <lightning-accordion allow-multiple-sections-open active-section-name="A">
+                    <lightning-accordion allow-multiple-sections-open >
                             <lightning-accordion-section name="A" label="Mapped Object Field Details" >
                                     <div class="slds-align_absolute-center slds-text-align_center">
                                         <div style="width:100%;background-color:white">
@@ -64,8 +64,8 @@
                                                                             </td> -->
                                                                             <td ondrop={drop} ondragover={allowDrop}>
                                                                                 <div class={result.Name}></div>
-                                                                                <template if:true={result.Destination_Object_Api_Name__c}>
-                                                                                        <lightning-pill name={index} label={result.Destination_Object_Api_Name__c} onremove={removeFromMapped}></lightning-pill>
+                                                                                <template if:true={result.Destination_Field_Api_Name__c}>
+                                                                                        <lightning-pill name={index} label={result.Destination_Field_Api_Name__c} onremove={removeFromMapped}></lightning-pill>
                                                                                 </template>
                                                                             </td>
                         
@@ -97,7 +97,7 @@
                                         </div>    
                                 </lightning-accordion-section>    
                     </lightning-accordion>    
-                    
+                    <lightning-button label="Update Field Mapping" title="Update Field Mapping" onclick={upsertFieldMapping} class="slds-m-left_x-small slds-align_absolute-center"></lightning-button>
             </template>
     </template>
     <template if:true={toggleSpinner}>

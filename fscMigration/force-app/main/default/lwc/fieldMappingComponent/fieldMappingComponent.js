@@ -1,5 +1,6 @@
 import { LightningElement,api,track } from 'lwc';
 import getFieldSetupWrapper from '@salesforce/apex/ObjectFieldSetup.getFieldSetUpWrapper';
+import upsertFieldSetup from '@salesforce/apex/ObjectFieldSetup.upsertFieldMapping';
 
 export default class FieldMappingComponent extends LightningElement {
 
@@ -66,7 +67,9 @@ export default class FieldMappingComponent extends LightningElement {
         //console.log(DestinationString.length);
         //console.log(DestinationString[0].Destination_Field_Api_Name__c);
         //console.log(DestinationString[0].Destination_Field_Name__c);
-        let DestinationUpdatedList = this.destunmappedLst.filter(unit => unit.Destination_Object_Api_Name__c !== ev.dataTransfer.getData("text"));
+        console.log(this.destunmappedLst.length);
+        let DestinationUpdatedList = this.destunmappedLst.filter(unit => unit.Destination_Field_Api_Name__c !== ev.dataTransfer.getData("text"));
+        console.log(DestinationUpdatedList.length);
         this.destunmappedLst = DestinationUpdatedList;
         this.sourceunmappedLst.map(function (unit) {
             if (unit != null || unit !== undefined) {
@@ -74,7 +77,7 @@ export default class FieldMappingComponent extends LightningElement {
                     console.log(ev.currentTarget.childNodes[0].className);
                     if (ev.currentTarget.childNodes[0].className !== null) {
                         if (unit.Name === ev.currentTarget.childNodes[0].className) {
-                            if(unit.Destination_Field_Api_Name__c !== "" || unit.Destination_Object_Api_Name__c !== " " ){
+                            if(unit.Destination_Field_Api_Name__c === "" || unit.Destination_Field_Api_Name__c === " " ){
                                console.log('Sucess');
                                unit.Destination_Field_Api_Name__c =  DestinationString[0].Destination_Field_Api_Name__c;
                                unit.Destination_Field_Name__c = DestinationString[0].Destination_Field_Name__c;
@@ -85,6 +88,42 @@ export default class FieldMappingComponent extends LightningElement {
                     }
                 }
             }
+        });
+    }
+
+    removeFromMapped(event){
+        console.log(event.target.name);
+        let destination = new Object();
+        destination.Destination_Field_Api_Name__c= this.sourceunmappedLst[event.target.name].Destination_Field_Api_Name__c;
+        destination.Destination_Field_Name__c = this.sourceunmappedLst[event.target.name].Destination_Field_Name__c;
+        destination.Object_setup_name__c= this.sourceunmappedLst[event.target.name].Object_setup_name__c;
+        destination.Souce_Field_Api_Name__c = '';
+        destination.Name = '';
+        console.log(destination);
+        this.destunmappedLst.push(destination);
+        this.sourceunmappedLst[event.target.name].Destination_Field_Api_Name__c = '';
+        this.sourceunmappedLst[event.target.name].Destination_Field_Name__c = '';
+        
+    }
+
+    upsertFieldMapping(event){
+        console.log('Update feild Mapping');
+        this.toggleSpinner = true;
+        let insertFieldMappingLst = [] ;
+        this.displayresult.forEach((item) => {
+            insertFieldMappingLst.push(item);
+        });
+        this.sourceunmappedLst.forEach((item) => {
+            insertFieldMappingLst.push(item);
+        });
+        upsertFieldSetup({fieldSetupLst:insertFieldMappingLst})
+        .then(result =>{
+            console.log('Success in upsertFieldSetup');
+            this.toggleSpinner = false;
+        })
+        .catch(error =>{
+            console.log('error in upsertFieldSetup');
+            console.log(error);
         });
     }
 }
