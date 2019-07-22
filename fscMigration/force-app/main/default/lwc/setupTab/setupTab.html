@@ -126,7 +126,9 @@
                     Box with option to drag.
                 </div> -->
                 <div class="slds-col slds-size_3-of-4">
-                    <c-field-mapping-component object-setup-id={objectSetupSelectedId} connected-salesforce-id={setupconnectedSalesforceOrgId}></c-field-mapping-component>
+                    <template if:true={objectSetupSelectedId}>
+                        <c-field-mapping-component object-setup-id={objectSetupSelectedId} connected-salesforce-id={setupconnectedSalesforceOrgId}></c-field-mapping-component>
+                    </template>
                 </div>
             </div>
         </template>        
