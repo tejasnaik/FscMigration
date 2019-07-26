@@ -212,7 +212,8 @@ public Class ObjectFieldSetup{
     */
     @AuraEnabled
     public static ObjectFieldSetup.FieldtSetUpWrapper getFieldSetUpWrapper(String salesforceOrgId,String objectsetupid){
-		SalesforceOrg__c salesforceorg = new SalesforceOrg__c();
+		
+        SalesforceOrg__c salesforceorg = new SalesforceOrg__c();
 		List<Field_setup__c> mappedLst = new List<Field_setup__c>();
         List<Field_setup__c> sourceunmappedLst = new List<Field_setup__c>();
         List<Field_setup__c> destunmappedLst = new List<Field_setup__c>();
@@ -309,27 +310,51 @@ public Class ObjectFieldSetup{
 
     
     public static Map<String,String> getSourceFields(String objectsetupid){
+        System.debug('Insided get source fields');
         Object_setup__c sourceobjecapiname=[SELECT Souce_Object_Api_Name__c FROM Object_setup__c where Id =:objectsetupid];
+        List<StandardFields__mdt> standardFieldsLst = [ Select FieldApiName__c,DeveloperName From StandardFields__mdt where DeveloperName = :sourceobjecapiname.Souce_Object_Api_Name__c limit 1];
+        List<String> uneditableFields = new List<String>();
+        //System.debug('@@@ standardFieldsLst @@@ ' + standardFieldsLst[0].FieldApiName__c );
+        if(standardFieldsLst.size() >0){
+            uneditableFields = standardFieldsLst[0].FieldApiName__c.split(',');    
+        }
+        System.debug('Uneditable list @@@ ' + uneditableFields);
+        //List<String> uneditableFields =  standardFieldsLst[0].FieldApiName__c.split(',');
         Map<String,String> sourceapi_labelfieldMap = new Map<String,String>();
         Map<String, Schema.SObjectField> fieldMap = Schema.getGlobalDescribe().get(sourceobjecapiname.Souce_Object_Api_Name__c).getDescribe().fields.getMap();
         
-        for (String fieldName: fieldMap.keySet()) {
-           //System.debug('##Field API Name='+fieldName);// list of all field API name
-           //System.debug('field name label'+fieldMap.get(fieldName).getDescribe().getLabel());//It provides to get the object fields label.
-            sourceapi_labelfieldMap.put(fieldName,fieldMap.get(fieldName).getDescribe().getLabel());
+        // for (String fieldName: fieldMap.keySet()) {
+        //    System.debug('##Field API Name='+fieldName);// list of all field API name
+        //    //System.debug('field name label'+fieldMap.get(fieldName).getDescribe().getLabel());//It provides to get the object fields label.
+        //    if(!uneditableFields.contains(fieldName)){
+        //        sourceapi_labelfieldMap.put(fieldName,fieldMap.get(fieldName).getDescribe().getLabel()); 
+        //    } 
 
-        }//end of for
+        // }//end of for
+        for(Schema.SObjectField fld: fieldMap.values()){
+            System.debug('API Field Name =  '+fld.getDescribe().getName());
+            System.debug('API label Name =  '+fld.getDescribe().getLabel());
+            if(uneditableFields.size() > 0){
+                if(!uneditableFields.contains(fld.getDescribe().getName())){
+                    sourceapi_labelfieldMap.put(fld.getDescribe().getName(),fld.getDescribe().getLabel());
+                }
+            }else{
+                sourceapi_labelfieldMap.put(fld.getDescribe().getName(),fld.getDescribe().getLabel());
+            }
+            
+        } 
+
         return sourceapi_labelfieldMap;
     } // End source Field Fetch   
 
     public static Map<String,String> getFslFields(String objectsetupid){
-        
+        System.debug('Inside getfslfields @@@ ');
         Object_setup__c destinationobjectapiname=[SELECT Destination_Object_Api_Name__c FROM Object_setup__c where Id =: objectsetupid];
         
         Map<String,String> destapi_labelFieldMap = new Map<String,String>();
 
-        System.debug('Access token @@@ ' + access_Token);
-        System.debug('Instance url @@@ ' + instanceUrl);
+        //System.debug('Access token @@@ ' + access_Token);
+        //System.debug('Instance url @@@ ' + instanceUrl);
 
         String endpoint = instanceUrl + '/services/data/v45.0/sobjects/'+destinationobjectapiname.Destination_Object_Api_Name__c+'/describe';
         HTTPRequest req = new HTTPRequest();
@@ -339,17 +364,20 @@ public Class ObjectFieldSetup{
         req.setHeader('Content-Type', 'application/json');
         Http ht = new Http();
         HttpResponse responseobjects = ht.send(req);
-        System.debug('Response body code @@@ ' + responseobjects.getBody());
+        //System.debug('Response body code @@@ ' + responseobjects.getBody());
         
         Map<String,Object> responseMap = (Map<String,Object>)JSON.deserializeUntyped(responseobjects.getBody());
         List<Object> objectLst = (List<Object>)responseMap.get('fields');
        
-		System.debug('Response body code @@@ ' + objectLst);
+		//System.debug('Response body code @@@ ' + objectLst);
  		for(Object obj : objectLst){
             Map<String,Object> objinfo = (Map<String,Object>)obj;
             String name=(String)objinfo.get('name');
             String label=(String)objinfo.get('label');
-            destapi_labelFieldMap.put(name.toLowerCase(),label);
+            //destapi_labelFieldMap.put(name.toLowerCase(),label); //pratiksha code commented
+            //System.debug('Name @@@ ' +name); 
+            //System.debug('Label @@@ ' +label); 
+            destapi_labelFieldMap.put(name,label);
         }
 
 

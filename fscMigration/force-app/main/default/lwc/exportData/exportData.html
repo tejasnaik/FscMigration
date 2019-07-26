@@ -1,38 +1,52 @@
 <template>
-    {exportDataConnectedSalesforceOrgId}
+    <!-- Salesforce org id {exportDataConnectedSalesforceOrgId}
+    copy {copyexportDataConnectedSalesforceOrgId} -->
+    <template if:false={toggleSpinner} >
     <div>
-        <lightning-combobox name="progress" label="Step 1: Select Object" value={value} placeholder="Select object"
+        <lightning-combobox name={exportDataConnectedSalesforceOrgId} label="Step 1: Select Object" value={objSelected} placeholder="Select object"
             options={objoptions} onchange={handleObjectChange} style="text-align:left">
         </lightning-combobox>
 
-        <div class="slds-box slds-m-top_large">
-            <table>
-                <tr>
-                    <td style="width: 20%">
-                        <b> Object Selected</b>
-                    </td>
-                    <td>
-                        ObjectSelectionStatus
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 20%">
-                        <b>File Selected</b>
-                    </td>
-                    <td>
-                        FileSelectionStatus
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 20%">
-                        <b>File Header</b>
-                    </td>
-                    <td>
-                        HeaderStatus
-                    </td>
-                </tr>
+        <template if:true={selectedObjName}>
+            <div class="slds-box slds-m-top_large">
+                <table>
+                    <tr>
+                        <td style="width: 20%">
+                            <b> Object Selected</b>
+                        </td>
+                        <td>
+                            {selectedObjName}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 20%">
+                            <b>Salesforce Org Selected</b>
+                        </td>
+                        <td>
+                            {connectedSalesforceOrgName}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 20%">
+                            <b>Object Mapped To</b>
+                        </td>
+                        <td>
+                            {mappedObjName}
+                        </td>
+                    </tr>
 
-            </table>
-        </div>
+                </table>
+                <lightning-button label="Export" onclick={startExport} class="slds-m-left_x-small slds-align_absolute-center" style="height:2rem" ></lightning-button>
+            </div>
+        </template>
     </div>
+</template>
+    <template if:true={toggleSpinner}>
+            <div class="slds-is-relative slds-p-around_xx-large slds-align_absolute-center slds-text-align_center">
+                    <lightning-spinner alternative-text="Loading" size="small"></lightning-spinner>      
+            </div>
+            <div class="slds-p-around_medium slds-align_absolute-center slds-text-align_center" style="color:rgb(221, 223, 224)">
+                Processing
+            </div>
+        </template>
 </template>

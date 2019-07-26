@@ -7,8 +7,8 @@
       </div> 
     </template>
     <template if:true={connectedSalesforceOrgId}>
-        <lightning-tabset variant="scoped">
-            <lightning-tab label="Setup">
+        <lightning-tabset variant="scoped" active-tab-value={activeTabValue}>
+            <lightning-tab label="Setup" value="Setup">
                 <template if:true={connectedSalesforceOrgId}>
                         <c-setup-tab setupconnected-salesforce-org-id={connectedSalesforceOrgId}></c-setup-tab>
                         <hr></hr>
@@ -21,12 +21,88 @@
                         </div>
                 </template>
             </lightning-tab>
-            <lightning-tab label="Export">
-                Two Content !
+            <lightning-tab label="Export" value="Export">
                 <c-export-data export-data-connected-salesforce-org-id={connectedSalesforceOrgId}></c-export-data>
             </lightning-tab>
-            <lightning-tab label="Transaction">
-                Three Content !
+            <lightning-tab label="Transaction" value="Transaction">
+                Progress Bar
+                <lightning-progress-bar value={progressBarValue} size="large"></lightning-progress-bar>
+                <div class="slds-p-around_medium slds-align_absolute-center slds-text-align_center" style="color:rgb(221, 223, 224)">
+                        {progressText}
+                </div>
+                <div class="slds-box slds-m-top_large">
+                        <table>
+                            <tr>
+                                <td style="width: 20%">
+                                    <b> Total JobItems</b>
+                                </td>
+                                <td>
+                                    {totalJobItems}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 20%">
+                                    <b>Job Items Processed</b>
+                                </td>
+                                <td>
+                                        {jobItemsProcessed}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 20%">
+                                    <b>Status</b>
+                                </td>
+                                <td>
+                                    {jobStatus}
+                                </td>
+                            </tr>
+        
+                        </table>
+                </div>
+                <template if:true={salesforceOrgName}>
+                <div class="slds-box slds-m-top_large">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                                <thead>
+                                <tr class="slds-line-height_reset">
+                                <th class="" scope="col">
+                                <div class="slds-truncate" title="Opportunity Name">Object Name</div>
+                                </th>
+                                <th class="" scope="col">
+                                <div class="slds-truncate" title="Account Name">Salesforce Org</div>
+                                </th>
+                                <th class="" scope="col">
+                                <div class="slds-truncate" title="Close Date">Job Items Processed</div>
+                                </th>
+                                <th class="" scope="col">
+                                <div class="slds-truncate" title="Stage">Total Job Items</div>
+                                </th>
+                                <th class="" scope="col">
+                                <div class="slds-truncate" title="Confidence">Job Items Failed</div>
+                                </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr class="slds-hint-parent">
+                                <td data-label="Account Name">
+                                <div class="slds-truncate" title="Cloudhub">{objectName}</div>
+                                </td>
+                                <td data-label="Close Date">
+                                <div class="slds-truncate" title="4/14/2015">{salesforceOrgName}</div>
+                                </td>
+                                <td data-label="Prospecting">
+                                <div class="slds-truncate" title="Prospecting">{jobItemsProcessedDetail}</div>
+                                </td>
+                                <td data-label="Confidence">
+                                <div class="slds-truncate" title="20%">{totalJobItemsDetail}</div>
+                                </td>
+                                <td data-label="Amount">
+                                <div class="slds-truncate" title="$25k">{failedJobitemsDetail}</div>
+                                </td>
+                                </tr>
+                                </tbody>
+                                </table>
+                </div>
+            </template>
             </lightning-tab>
             <lightning-tab label="Help">
                 Three Content !
