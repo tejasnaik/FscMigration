@@ -21,10 +21,12 @@ public static void migrateObjectDataInFSC(List<sObject> sobjList ,String authId,
 //list<account> acc=[select id,name from Account limit 4];
 //String fetchRecords ='Select'+FieldsName+'From'+ objectName;
 // List<sObject> sobjList = Database.query(fetchRecords);
-   
+    Map<Id,Id> oldId_newIdMap = populateLookUpIdMap(objectsetupname,sobjList);
     String jsonResult=json.serialize(sobjList);
     List<oldid> oldids=(List<oldid>)(JSON.deserialize(jsonResult, List<oldid>.class));
+    system.debug('Oldids @@@ ');
     system.debug(oldids);
+    system.debug(fieldobjectmap);
     jsonResult= '{ "records":'+jsonResult+'}';
     jsonResult=jsonResult.replaceAll('"url"', '"referenceId"');
     jsonResult=jsonResult.replaceAll('"Id":"[0-9a-zA-Z]{18}",','');
@@ -35,8 +37,15 @@ public static void migrateObjectDataInFSC(List<sObject> sobjList ,String authId,
         string d='"'+fieldobjectmap.get(sourcefield)+'"';
         jsonResult=jsonResult.replaceAll(s,d);
     }
-
+    for(Id oldrecid : oldId_newIdMap.keyset()){
+        string s='"'+oldrecid+'"';
+        string d='"'+oldId_newIdMap.get(oldrecid)+'"';
+        jsonResult=jsonResult.replaceAll(s,d);
+    }
+    system.debug('@@@@ json result sss @@@@@ ');
     system.debug(jsonResult);
+    //MigrateObject.createObjectDataInFSC(jsonResult,authId);
+
     List<newid> newids=(List<newid>)(JSON.deserialize(MigrateObject.createObjectDataInFSC(jsonResult,authId), List<newid>.class));
     system.debug(newids);
     List<Manage_Id__c> oldnewList=new List<Manage_Id__c>();
@@ -44,18 +53,26 @@ public static void migrateObjectDataInFSC(List<sObject> sobjList ,String authId,
     
     for(Integer i=0 ;i<oldids.size(); i++){
     if(newids[i].success==true){
-         //oldnew.put(oldids[i].id,newids[i].id);
-         oldnewList[i]=new Manage_Id__c();
-         oldnewList[i].Old_id__c=oldids[i].id;
-         oldnewList[i].New_id__c=newids[i].id;
-         oldnewList[i].Object_setup_name__c=objectsetupname;
-         //oldnewList[i].isSuccess__c='true';
+        Manage_Id__c manageSuccessObj = new Manage_Id__c();
+        manageSuccessObj.Old_id__c = oldids[i].id;
+        manageSuccessObj.New_id__c = newids[i].id;
+        manageSuccessObj.Object_setup_name__c = objectsetupname;
+        oldnewList.add(manageSuccessObj);
+        //  //oldnew.put(oldids[i].id,newids[i].id);
+        //  oldnewList[i]=new Manage_Id__c();
+        //  oldnewList[i].Old_id__c=oldids[i].id;
+        //  oldnewList[i].New_id__c=newids[i].id;
+        //  oldnewList[i].Object_setup_name__c=objectsetupname;
+        //  //oldnewList[i].isSuccess__c='true';
           
     }     
     else{
-        oldnewList[i]=new Manage_Id__c();
-        oldnewList[i].Old_id__c=oldids[i].id;
-        oldnewList[i].Object_setup_name__c=objectsetupname;
+        Manage_Id__c manageFailObj = new Manage_Id__c();
+        manageFailObj.Old_id__c=oldids[i].id;
+        manageFailObj.Object_setup_name__c = objectsetupname;
+        oldnewList.add(manageFailObj);
+        //oldnewList[i].Old_id__c=oldids[i].id;
+        //oldnewList[i].Object_setup_name__c=objectsetupname;
         
     }    
   }
@@ -98,10 +115,46 @@ public static void migrateObjectDataInFSC(List<sObject> sobjList ,String authId,
         httpRequest.setBody(requestBody);
         httpRequest.setEndpoint(endPoint); 
         Http ht = new Http();  
-        HttpResponse httpResponse = ht.send(httpRequest); 
+        HttpResponse httpResponse = ht.send(httpRequest);
+        System.debug('Status @@  ' + httpResponse.getStatus());
+        System.debug('Status code @@  ' + httpResponse.getStatusCode()); 
         system.debug('Body'+httpResponse.getBody());
         returnString = httpResponse.getBody();
      }
        return returnString;
+    }
+
+    public static Map<Id,Id> populateLookUpIdMap(String objectSetUpID,List<sObject> sobjList){
+        map<Id,Id> oldId_newIdMap = new Map<Id,Id>();
+        List<StandardFields__mdt> standardFieldmdt = new List<StandardFields__mdt>();
+        Set<Id> oldIds = new Set <Id>();
+        //List<Manage_Id__c> managelst = new List<Manage_Id__c>();
+
+        if(!String.isBlank(objectSetUpID)){
+            Object_setup__c objsetup = [Select Souce_Object_Api_Name__c from Object_setup__c where id =:objectSetUpID];
+            standardFieldmdt = [Select FieldApiName__c,LookupFieldApiName__c,DeveloperName from StandardFields__mdt where DeveloperName = :objsetup.Souce_Object_Api_Name__c] ;
+            
+        }//end of if isblank
+        if(standardFieldmdt != null && standardFieldmdt.size() >0){        
+            StandardFields__mdt selectedObj = standardFieldmdt[0];
+            List<String> lookupfieldnamelst = new List<String> ();
+            if(String.isNotBlank(selectedObj.LookupFieldApiName__c)){
+                lookupfieldnamelst = selectedObj.LookupFieldApiName__c.split(',');
+            }
+            for(String lookupfieldname:lookupfieldnamelst){
+                for(Sobject obj :sobjList){
+                    oldIds.add((Id)obj.get(lookupfieldname));
+                }
+            }//end of for
+            if(!oldIds.isEmpty()){
+                //managelst = [Select New_id__c,Old_id__c from Manage_Id__c where Old_id__c in :oldIds];
+                for(Manage_Id__c managerec : [Select New_id__c,Old_id__c from Manage_Id__c where Old_id__c in :oldIds]){
+                    //verify if we need to check if new id needs to be checked for null 
+                    oldId_newIdMap.put(managerec.Old_id__c,managerec.New_id__c);
+                }
+            }
+        }    
+
+        return oldId_newIdMap;
     }
 }

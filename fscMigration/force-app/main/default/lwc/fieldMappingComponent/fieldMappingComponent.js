@@ -1,6 +1,9 @@
-import { LightningElement,api,track } from 'lwc';
+import { LightningElement,api,track,wire } from 'lwc';
 import getFieldSetupWrapper from '@salesforce/apex/ObjectFieldSetup.getFieldSetUpWrapper';
 import upsertFieldSetup from '@salesforce/apex/ObjectFieldSetup.upsertFieldMapping';
+
+import { CurrentPageReference } from 'lightning/navigation';
+import { fireEvent } from 'c/pubsub';
 
 export default class FieldMappingComponent extends LightningElement {
 
@@ -13,6 +16,8 @@ export default class FieldMappingComponent extends LightningElement {
     @track sourceunmappedLst;
     @track displayresult;
     @track destunmappedLst;
+
+    @wire(CurrentPageReference) pageRef;
 
     connectedCallback(){
         console.log('Connected callback for fieldmapping component called');
@@ -125,5 +130,6 @@ export default class FieldMappingComponent extends LightningElement {
             console.log('error in upsertFieldSetup');
             console.log(error);
         });
+        fireEvent(this.pageRef, 'updateSelectObjectPicklist', 'datatemp');
     }
 }
