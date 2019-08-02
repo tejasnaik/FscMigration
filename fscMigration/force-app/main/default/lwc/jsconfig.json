@@ -8,17 +8,17 @@
             "c/dataMigratorMain": [
                 "dataMigratorMain/dataMigratorMain.js"
             ],
+            "c/exportData": [
+                "exportData/exportData.js"
+            ],
+            "c/fieldMappingComponent": [
+                "fieldMappingComponent/fieldMappingComponent.js"
+            ],
             "c/pubsub": [
                 "pubsub/pubsub.js"
             ],
             "c/setupTab": [
                 "setupTab/setupTab.js"
-            ],
-            "c/fieldMappingComponent": [
-                "fieldMappingComponent/fieldMappingComponent.js"
-            ],
-            "c/exportData": [
-                "exportData/exportData.js"
             ]
         },
         "experimentalDecorators": true
