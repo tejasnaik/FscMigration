@@ -78,11 +78,15 @@ export default class FieldMappingComponent extends LightningElement {
         this.destunmappedLst = DestinationUpdatedList;
         this.sourceunmappedLst.map(function (unit) {
             if (unit != null || unit !== undefined) {
+                console.log('unit != null || unit !== undefined @@@@ 1 @@@@@@');
                 if (unit.Name != null || unit.Name !== undefined) {
-                    console.log(ev.currentTarget.childNodes[0].className);
+                    console.log(ev.currentTarget.childNodes[0].className + '@@@@ 2 @@@@@@');
                     if (ev.currentTarget.childNodes[0].className !== null) {
+                        console.log(ev.currentTarget.childNodes[0].className + '@@@@@ 3 @@@@@@');
                         if (unit.Name === ev.currentTarget.childNodes[0].className) {
-                            if(unit.Destination_Field_Api_Name__c === "" || unit.Destination_Field_Api_Name__c === " " ){
+                            console.log('unit.Name === ev.currentTarget.childNodes[0].className @@@@@ 4 @@@@@@' );
+                            console.log(unit.Destination_Field_Api_Name__c);
+                            if(unit.Destination_Field_Api_Name__c === "" || unit.Destination_Field_Api_Name__c === " " || unit.Destination_Field_Api_Name__c === undefined  ){
                                console.log('Sucess');
                                unit.Destination_Field_Api_Name__c =  DestinationString[0].Destination_Field_Api_Name__c;
                                unit.Destination_Field_Name__c = DestinationString[0].Destination_Field_Name__c;

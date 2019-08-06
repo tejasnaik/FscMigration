@@ -41,6 +41,7 @@ public static void migrateObjectDataInFSC(List<sObject> sobjList,String authId,S
     }
     System.debug('Update record listsize  @@@ '  + updateSobjectLst.size());
     System.debug('insert record list size @@@@'  + insertSobjectLst.size());
+	//updateObjectDatainFsc(updateSobjectLst,authId,manageobjlst,fieldobjectmap);
     // new code end 
     //Map<Id,Id> oldId_newIdMap = populateLookUpIdMap(objectsetupname,sobjList);
 	//String jsonResult=json.serialize(sobjList);
@@ -96,23 +97,25 @@ public static void migrateObjectDataInFSC(List<sObject> sobjList,String authId,S
 
 @AuraEnabled
 public static String createObjectDataInFSC(String recordsinjson,String authId){
-	// Getting Credential to Connect with Destination Org
-	SalesforceOrg__c authClient=[Select Consumer_Key__c,Consumer_Secret__c,UserName__c,Password__c From SalesforceOrg__c where id =:authId limit 1];
+	// // Getting Credential to Connect with Destination Org
+	// SalesforceOrg__c authClient=[Select Consumer_Key__c,Consumer_Secret__c,UserName__c,Password__c From SalesforceOrg__c where id =:authId limit 1];
+	// String returnString;
+	// String clientId =authClient.Consumer_Key__c;
+	// String clientSecret =authClient.Consumer_Secret__c;
+	// String username =authClient.UserName__c;
+	// String password = authClient.Password__c;
+	// String reqbody ='grant_type=password&client_id='+clientId+'&client_secret='+clientSecret+'&username='+username+'&password='+password;
+	// // get Access token of Destination org
+	// Http h = new Http();
+	// HttpRequest req = new HttpRequest();
+	// req.setBody(reqbody);
+	// req.setMethod('POST');
+	// req.setEndpoint('https://login.salesforce.com/services/oauth2/token');
+	// HttpResponse res = h.send(req);
+	//deserializeResponse response=(deserializeResponse)JSON.deserialize(res.getbody(),deserializeResponse.class);
 	String returnString;
-	String clientId =authClient.Consumer_Key__c;
-	String clientSecret =authClient.Consumer_Secret__c;
-	String username =authClient.UserName__c;
-	String password = authClient.Password__c;
-	String reqbody ='grant_type=password&client_id='+clientId+'&client_secret='+clientSecret+'&username='+username+'&password='+password;
-	// get Access token of Destination org
-	Http h = new Http();
-	HttpRequest req = new HttpRequest();
-	req.setBody(reqbody);
-	req.setMethod('POST');
-	req.setEndpoint('https://login.salesforce.com/services/oauth2/token');
-	HttpResponse res = h.send(req);
-	deserializeResponse response=(deserializeResponse)JSON.deserialize(res.getbody(),deserializeResponse.class);
-	system.debug('Rest auth'+res.getbody());
+	deserializeResponse response = getAccessToken(authId);
+	//system.debug('Rest auth'+res.getbody());
 
 	// API Call to Insertion
 
@@ -133,6 +136,7 @@ public static String createObjectDataInFSC(String recordsinjson,String authId){
 		System.debug('Status code @@  ' + httpResponse.getStatusCode());
 		system.debug('Body'+httpResponse.getBody());
 		returnString = httpResponse.getBody();
+		
 	}
 	return returnString;
 }
@@ -169,5 +173,63 @@ public static Map<Id,Id> populateLookUpIdMap(String objectSetUpID,List<sObject> 
 	}
 
 	return oldId_newIdMap;
+}
+
+public static deserializeResponse getAccessToken(String salesforceOrgId){
+	if(String.isNotBlank(salesforceOrgId)){
+		SalesforceOrg__c authClient=[Select Consumer_Key__c,Consumer_Secret__c,UserName__c,Password__c From SalesforceOrg__c where id =:salesforceOrgId limit 1];
+		String clientId =authClient.Consumer_Key__c;
+		String clientSecret =authClient.Consumer_Secret__c;
+		String username =authClient.UserName__c;
+		String password = authClient.Password__c;
+		String reqbody ='grant_type=password&client_id='+clientId+'&client_secret='+clientSecret+'&username='+username+'&password='+password;
+		// get Access token of Destination org
+		Http h = new Http();
+		HttpRequest req = new HttpRequest();
+		req.setBody(reqbody);
+		req.setMethod('POST');
+		req.setEndpoint('https://login.salesforce.com/services/oauth2/token');
+		HttpResponse res = h.send(req);	
+		deserializeResponse deserializeResponse=(deserializeResponse)JSON.deserialize(res.getbody(),deserializeResponse.class);
+		System.debug('deserializeResponse accesstoken '  + deserializeResponse.access_token);
+		System.debug('deserializeResponse instance url ' + deserializeResponse.instance_url);
+
+		return deserializeResponse;	
+	}
+
+	return null;
+}
+
+public static void updateObjectDatainFsc(List<sObject> updatesObjectData,String salesforceOrgId ,List<Manage_Id__c > manageRecordLst,Map<String,String> fieldobjectmap){
+	if(!updatesObjectData.isEmpty()){
+		deserializeResponse deserializeResponse = getAccessToken(salesforceOrgId);
+		String serializedData=json.serialize(updatesObjectData);
+		serializedData= '{ "records":'+serializedData+'}';
+		for(Manage_Id__c manageRecord : manageRecordLst){
+			string s='"'+manageRecord.Old_id__c+'"';
+            string d='"'+manageRecord.New_id__c +'"';
+            serializedData=serializedData.replaceAll(s,d);	
+		}
+		for(String sourcefield :fieldobjectmap.keyset()) {
+			string s='"'+sourcefield+'"';
+			string d='"'+fieldobjectmap.get(sourcefield)+'"';
+			serializedData=serializedData.replaceAll(s,d);
+		}
+		String endPoint =deserializeResponse.instance_url+'/services/data/v45.0/composite/sObjects'+'?_HttpMethod=PATCH';
+		HttpRequest httpRequest = new HttpRequest(); 
+        httpRequest.setMethod('POST'); 
+		String requestBody=serializedData;
+		httpRequest.setHeader('Content-Type', 'application/json');
+        httpRequest.setHeader('Accept', 'application/json');
+        httpRequest.setHeader('Authorization', 'Bearer ' + deserializeResponse.access_token);
+        httpRequest.setBody(requestBody);
+        httpRequest.setEndpoint(endPoint);
+		Http ht = new Http();  
+        HttpResponse httpResponse = ht.send(httpRequest);
+        System.debug('Status for update @@  ' + httpResponse.getStatus());
+        System.debug('Status code for update  @@  ' + httpResponse.getStatusCode()); 
+        system.debug('Body of update '+httpResponse.getBody()); 
+	}
+
 }
 }
