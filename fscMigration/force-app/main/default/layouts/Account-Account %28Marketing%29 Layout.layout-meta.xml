@@ -37,6 +37,10 @@
                 <behavior>Edit</behavior>
                 <field>testfieldUncommon__c</field>
             </layoutItems>
+            <layoutItems>
+                <behavior>Edit</behavior>
+                <field>testsource__c</field>
+            </layoutItems>
         </layoutColumns>
         <layoutColumns>
             <layoutItems>

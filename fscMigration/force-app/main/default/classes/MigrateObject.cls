@@ -12,8 +12,13 @@ public string id;
 public class newid {
 public string id;
 public boolean success;
+public errorWrapper[] errors;
 }
 
+public class errorWrapper{
+	public string message;
+	public string statusCode;
+}
 
 @AuraEnabled
 public static void migrateObjectDataInFSC(List<sObject> sobjList,String authId,String objectsetupname, Map<String,String> fieldobjectmap){
@@ -29,11 +34,11 @@ public static void migrateObjectDataInFSC(List<sObject> sobjList,String authId,S
     Map <Id,Manage_Id__c> recordId_manage = new Map<Id,Manage_Id__c>();
     List<Manage_Id__c> manageobjlst = [Select Old_id__c,New_id__c from Manage_Id__c where Old_id__c in :recordsIds];
     System.debug('manage objlist size @@@  '  + manageobjlst.size());
-    for(Manage_Id__c manageObj : [Select Old_id__c,New_id__c from Manage_Id__c where Old_id__c in :recordsIds]){
+    for(Manage_Id__c manageObj : [Select Old_id__c,New_id__c,Status__c from Manage_Id__c where Old_id__c in :recordsIds]){
         recordId_manage.put(manageObj.Old_id__c,manageObj);
     }    
     for(Integer i= 0 ;i<sobjList.size(); i++){
-        if(recordId_manage.containsKey((Id)sobjList[i].get('Id'))){
+        if(recordId_manage.containsKey((Id)sobjList[i].get('Id')) && recordId_manage.get((Id)sobjList[i].get('Id')).New_id__c != null){
             updateSobjectLst.add(sobjList[i]);
         }else{
             insertSobjectLst.add(sobjList[i]);
@@ -41,7 +46,7 @@ public static void migrateObjectDataInFSC(List<sObject> sobjList,String authId,S
     }
     System.debug('Update record listsize  @@@ '  + updateSobjectLst.size());
     System.debug('insert record list size @@@@'  + insertSobjectLst.size());
-	//updateObjectDatainFsc(updateSobjectLst,authId,manageobjlst,fieldobjectmap);
+	List<Manage_Id__c> updatemanagelst = updateObjectDatainFsc(updateSobjectLst,authId,manageobjlst,fieldobjectmap);
     // new code end 
     //Map<Id,Id> oldId_newIdMap = populateLookUpIdMap(objectsetupname,sobjList);
 	//String jsonResult=json.serialize(sobjList);
@@ -73,24 +78,51 @@ public static void migrateObjectDataInFSC(List<sObject> sobjList,String authId,S
     List<newid> newids=(List<newid>)(JSON.deserialize(MigrateObject.createObjectDataInFSC(jsonResult,authId), List<newid>.class));
 	system.debug(newids);
 	List<Manage_Id__c> oldnewList=new List<Manage_Id__c>();
-	
+	List<Manage_Id__c> updateoldnewList = new List<Manage_Id__c>();
 
 	for(Integer i=0; i<oldids.size(); i++) {
 		if(newids[i].success==true) {
-			Manage_Id__c manageSuccessObj = new Manage_Id__c();
-			manageSuccessObj.Old_id__c = oldids[i].id;
-			manageSuccessObj.New_id__c = newids[i].id;
-			manageSuccessObj.Object_setup_name__c = objectsetupname;
-			oldnewList.add(manageSuccessObj);
+			if(recordId_manage.containsKey((Id)oldids[i].id)){
+				Manage_Id__c managerec = recordId_manage.get((Id)oldids[i].id);
+				managerec.New_id__c = newids[i].id;
+				updateoldnewList.add(managerec);
+			}else{
+				Manage_Id__c manageSuccessObj = new Manage_Id__c();
+				manageSuccessObj.Old_id__c = oldids[i].id;
+				manageSuccessObj.New_id__c = newids[i].id;
+				manageSuccessObj.Object_setup_name__c = objectsetupname;
+				manageSuccessObj.Status__c = 'Success';
+				oldnewList.add(manageSuccessObj);
+			}
+			
 		}
 		else{
-			Manage_Id__c manageFailObj = new Manage_Id__c();
-			manageFailObj.Old_id__c=oldids[i].id;
-			manageFailObj.Object_setup_name__c = objectsetupname;
-			oldnewList.add(manageFailObj);
+			if(recordId_manage.containsKey((Id)oldids[i].id)){
+				Manage_Id__c managerec = recordId_manage.get((Id)oldids[i].id);
+				managerec.Status__c = '';
+				for(errorWrapper error :newids[i].errors){
+					managerec.Status__c = managerec.Status__c + error.statusCode + ' ' + error.message;
+					updateoldnewList.add(managerec); 
+				}
+			}else{
+				Manage_Id__c manageFailObj = new Manage_Id__c();
+				manageFailObj.Old_id__c=oldids[i].id;
+				manageFailObj.Object_setup_name__c = objectsetupname;
+				for(errorWrapper error :newids[i].errors){
+					manageFailObj.Status__c = manageFailObj.Status__c + error.statusCode + ' ' + error.message;
+				}
+				oldnewList.add(manageFailObj);
+			}
+			
 		}
 	}
 	insert oldnewList;
+	if(!updateoldnewList.isEmpty()){
+		update updateoldnewList;
+	}
+	if(!updatemanagelst.isEmpty()){
+		update updatemanagelst;
+	}
 
 }
 
@@ -200,10 +232,21 @@ public static deserializeResponse getAccessToken(String salesforceOrgId){
 	return null;
 }
 
-public static void updateObjectDatainFsc(List<sObject> updatesObjectData,String salesforceOrgId ,List<Manage_Id__c > manageRecordLst,Map<String,String> fieldobjectmap){
+public static List<Manage_Id__c> updateObjectDatainFsc(List<sObject> updatesObjectData,String salesforceOrgId ,List<Manage_Id__c > manageRecordLst,Map<String,String> fieldobjectmap){
+	List<Manage_Id__c> managelstupdlst = new List<Manage_Id__c>();
 	if(!updatesObjectData.isEmpty()){
 		deserializeResponse deserializeResponse = getAccessToken(salesforceOrgId);
 		String serializedData=json.serialize(updatesObjectData);
+		List<oldid> updateoldids=(List<oldid>)(JSON.deserialize(serializedData, List<oldid>.class));
+		List<Id> oldid = new List<Id>();
+		Map<Id,Manage_Id__c> oldId_Managemap = new Map<Id,Manage_Id__c>();
+		for(oldid oldidrecord : updateoldids){
+			oldid.add((Id)oldidrecord.id);	
+		}
+		for(Manage_Id__c manageRecord : [ SELECT New_id__c,Object_setup_name__c,Old_id__c,Status__c FROM Manage_Id__c where Old_id__c  in :oldid]){
+			System.debug(manageRecord);
+			oldId_Managemap.put(manageRecord.Old_id__c,manageRecord);
+		}
 		serializedData= '{ "records":'+serializedData+'}';
 		for(Manage_Id__c manageRecord : manageRecordLst){
 			string s='"'+manageRecord.Old_id__c+'"';
@@ -228,8 +271,37 @@ public static void updateObjectDatainFsc(List<sObject> updatesObjectData,String 
         HttpResponse httpResponse = ht.send(httpRequest);
         System.debug('Status for update @@  ' + httpResponse.getStatus());
         System.debug('Status code for update  @@  ' + httpResponse.getStatusCode()); 
-        system.debug('Body of update '+httpResponse.getBody()); 
-	}
+        system.debug('Body of update '+httpResponse.getBody());
+		String updatedResponseString = 	 httpResponse.getBody();
+		System.debug('updatedResponseString @@@@ ' + updatedResponseString);
+		List<newid> updatenewids=(List<newid>)(JSON.deserialize(updatedResponseString, List<newid>.class));
+		System.debug('New Ids list size @@@ ' + updatenewids.size());
+		System.debug('Old ids list size @@@ ' + updateoldids.size());
+		for(integer i= 0 ;i<updatenewids.size();i++){
+			System.debug('new id ' + updatenewids[i]);
+			System.debug('old id ' + updateoldids[i]);
+			Manage_Id__c manage = new Manage_Id__c();
+			if(oldId_Managemap.containsKey((Id)updateoldids[i].id)){
+				manage =  oldId_Managemap.get((Id)updateoldids[i].id);
+			}
+			if(updatenewids[i].success == true){
+				manage.Status__c = 'Success';
+					
+			}else{
+				System.debug(updatenewids[i].errors);
+				manage.Status__c = '';
+				for(errorWrapper error : updatenewids[i].errors){
+					manage.Status__c = manage.Status__c +''+error.statusCode + ' ' + error.message;
+					System.debug('Status code @@@@' + error.statusCode);
+					System.debug('Message @@@  ' + error.message);
+				}
 
+			}
+			managelstupdlst.add(manage);
+		}
+
+		//update managelstupdlst;
+	}
+	return managelstupdlst;
 }
 }
