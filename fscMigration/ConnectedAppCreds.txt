@@ -13,3 +13,10 @@ Is sandbox : No
 
 Username : tejasnaik@datamigrator.com
 Password : Focus@2019
+
+
+username : tejas.naik2@cognizant.com.datamigrator2
+password: Vedant@2019
+Consumerkey : 3MVG9GYWKbMgBvbx0dzocmKp3HKsVfFvx8AqpAsOg1qGNIcTazqi3CN0l6.F8.hM08.6jdocgM.T1_CW_Ilez
+Consumer secret: E2C3EF5A85C6BF568C7C222303268BDB9B9DF9CACEE6ECDB74801032DC27FDE6
+Is sandbox : No
