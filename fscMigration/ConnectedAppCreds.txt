@@ -20,3 +20,19 @@ password: Vedant@2019
 Consumerkey : 3MVG9GYWKbMgBvbx0dzocmKp3HKsVfFvx8AqpAsOg1qGNIcTazqi3CN0l6.F8.hM08.6jdocgM.T1_CW_Ilez
 Consumer secret: E2C3EF5A85C6BF568C7C222303268BDB9B9DF9CACEE6ECDB74801032DC27FDE6
 Is sandbox : No
+
+Credentials
+	1. tejasnaik@datamigrator.com
+	   Focus@2019
+	   
+	2. tejasnaik@datamigratortestorg.com
+		Focus@2019
+		
+	3. tejas.naik2@cognizant.com.datamigrator1	
+		Vedant@2019
+		
+	4.tejas.naik2@cognizant.com.datamigrator2
+       Vedant@2019
+
+	5.Username : tejas.naik@desttoday.com
+		Password : Vedant@2019	
